@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "ka-sherlock": {
+      "command": "npx",
+      "args": ["-y", "tsx", "/home/user/kosmomorphia-plugin/mcp-servers/ka-sherlock-ts/server.ts"],
+      "env": { "KOSMO_ROOT": "/home/user/kosmomorphia-plugin" }
+    }
+  }
+}
