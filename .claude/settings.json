@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "kosmomorphia-estate": {
+      "source": { "source": "directory", "path": "/home/user/kosmomorphia-plugin" }
+    }
+  },
+  "enabledPlugins": {
+    "kosmomorphia@kosmomorphia-estate": true
+  },
+  "env": {
+    "KOSMO_ROOT": "/home/user/kosmomorphia-plugin"
+  }
+}
