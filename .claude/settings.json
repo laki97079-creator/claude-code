@@ -9,5 +9,19 @@
   },
   "env": {
     "KOSMO_ROOT": "/home/user/kosmomorphia-plugin"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/ESTATE_MOUNT/bootstrap_estate.sh\" || true",
+            "timeout": 600,
+            "statusMessage": "Restoring KOSMOMORPHIA estate mirror"
+          }
+        ]
+      }
+    ]
   }
 }
