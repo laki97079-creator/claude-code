@@ -128,3 +128,21 @@ count from a full listing, never a truncated one · unverified marked [UNVERIFIE
 ENGINE SUGGESTS, MOTHER DECIDES.
 
 ΦΩΣ
+
+---
+
+## Supersession · 2026-10-02T18:36:21+03:00 · no symlinks (Mother hard rule)
+
+Mother, 2026-10-02: "No pointers no symlinks allowed. Hard rule." The equip step above wired skills as
+symlinks into `~/.claude/skills`. `bootstrap_estate.sh` now copies each skill as a full body
+(`cp -RL`, so no link inside a source is carried either) and verifies it by a SHA-256 tree hash.
+
+- A legacy symlink at the destination is replaced by the body it pointed at (a link is a pointer, not content).
+- An existing copy whose tree hash differs from the skill plane is reported and never overwritten.
+- After the run the script counts symlinks under the skills directory and reports any that remain.
+
+Scratch-directory test, 2026-10-02 (seeded with one legacy symlink and one locally edited copy):
+run 1 `copied=111 kept=0 drifted=1 symlinks_replaced=1 failed=0`; run 2 `copied=0 kept=111 drifted=1
+symlinks_replaced=0 failed=0`; 112 real directories, 0 symlinks; the edited copy kept its local line.
+
+The earlier text above is retained as history.
