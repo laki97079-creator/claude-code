@@ -146,3 +146,15 @@ run 1 `copied=111 kept=0 drifted=1 symlinks_replaced=1 failed=0`; run 2 `copied=
 symlinks_replaced=0 failed=0`; 112 real directories, 0 symlinks; the edited copy kept its local line.
 
 The earlier text above is retained as history.
+
+### Review fix · 2026-10-02 (Copilot + Cursor Bugbot findings)
+
+- The tree hash now follows links (`find -L`), the same view `cp -RL` copies, so a skill that contains an
+  internal link verifies against its materialized copy.
+- Each copy is staged in a temporary directory, verified, then moved into place. A failed or partial
+  copy never occupies the destination, so the next run retries it instead of reporting it as drift.
+
+Reproduced first on the PR head (`0aff96d`): a skill with an internal link failed verification, and a
+failed copy stayed as permanent drift on the rerun. With the fix: the linked skill copies and verifies;
+the failing skill is not installed, then installs on the next run once its source is repaired;
+0 symlinks and 0 leftover staging directories.

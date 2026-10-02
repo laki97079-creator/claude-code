@@ -51,8 +51,10 @@ clone_if_absent "$MUSIC_ROOT"     "$GH/grok-music-estate-sandbox"   "music sandb
 FIRM="$PANTHEONA_ROOT/MATRY_SKILLS_DEPLOY_20260722_212117/FIRM_HIGH_LAW_CODE"
 copied=0 kept=0 drifted=0 unlinked=0 failed=0
 
+# Hashes the dereferenced tree (find -L), the same view cp -RL copies, so a source that contains
+# a link verifies against its materialized copy.
 tree_sha() {
-  (cd "$1" && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum) | sha256sum | cut -d' ' -f1
+  (cd "$1" && find -L . -type f -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum) | sha256sum | cut -d' ' -f1
 }
 
 copy_skill() {
@@ -73,13 +75,20 @@ copy_skill() {
     fi
     return 0
   fi
+  # Stage outside the skills directory and move into place only after the SHA-256 check, so a
+  # failed or partial copy never occupies the destination (it would read as drift on every rerun).
   # -L dereferences any link inside the source so no symlink is ever copied in.
-  if cp -RL "$src" "$dst" && [ "$(tree_sha "$src")" = "$(tree_sha "$dst")" ]; then
+  local stage
+  stage=$(mktemp -d "${TMPDIR:-/tmp}/estate-skill.XXXXXX") || { failed=$((failed+1)); return 0; }
+  if cp -RL "$src" "$stage/$name" \
+     && [ "$(tree_sha "$src")" = "$(tree_sha "$stage/$name")" ] \
+     && mv "$stage/$name" "$dst"; then
     copied=$((copied+1))
   else
     failed=$((failed+1))
-    echo "estate: $name copy did not verify by SHA-256 — check $dst." >&2
+    echo "estate: $name copy did not verify by SHA-256 — not installed; the next run retries." >&2
   fi
+  rm -rf "$stage"
 }
 
 if [ -d "$KOSMO_ROOT/skills" ]; then
