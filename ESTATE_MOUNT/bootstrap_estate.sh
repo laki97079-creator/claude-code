@@ -79,7 +79,8 @@ copy_skill() {
   # failed or partial copy never occupies the destination (it would read as drift on every rerun).
   # -L dereferences any link inside the source so no symlink is ever copied in.
   local stage
-  stage=$(mktemp -d "${TMPDIR:-/tmp}/estate-skill.XXXXXX") || { failed=$((failed+1)); return 0; }
+  # Same filesystem as the destination, so the final mv is an atomic rename, not a copy.
+  stage=$(mktemp -d "$SKILLS_DIR/.estate-skill.XXXXXX") || { failed=$((failed+1)); return 0; }
   if cp -RL "$src" "$stage/$name" \
      && [ "$(tree_sha "$src")" = "$(tree_sha "$stage/$name")" ] \
      && mv "$stage/$name" "$dst"; then
