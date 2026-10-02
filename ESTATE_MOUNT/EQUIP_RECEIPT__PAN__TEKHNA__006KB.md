@@ -158,3 +158,16 @@ Reproduced first on the PR head (`0aff96d`): a skill with an internal link faile
 failed copy stayed as permanent drift on the rerun. With the fix: the linked skill copies and verifies;
 the failing skill is not installed, then installs on the next run once its source is repaired;
 0 symlinks and 0 leftover staging directories.
+
+### Review fix · 2026-10-02 (Cursor Bugbot: staged move can occupy destination)
+
+- The staging directory now sits inside the skills directory itself (`.estate-stage.XXXXXX`). It is hidden,
+  and it sits two levels above any `SKILL.md` that the loader reads. Because it is on the destination's
+  filesystem, the final `mv` is one atomic `rename(2)`. A stage under `/tmp` is often on another
+  filesystem. There `mv` falls back to copy-then-delete, and an interruption could leave a partial
+  directory at the destination, which every later run reported as drift.
+
+Scratch test: one legacy symlink and one locally edited copy, traced with `strace`. Run 1:
+`copied=111 kept=0 drifted=1 symlinks_replaced=1 failed=0`. All 111 installs were one
+`renameat2(..., RENAME_NOREPLACE) = 0` each, from `.estate-stage.*` to the destination. Run 2:
+`copied=0 kept=111 drifted=1`. The run left 0 staging directories and 0 symlinks.

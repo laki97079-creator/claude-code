@@ -79,7 +79,11 @@ copy_skill() {
   # failed or partial copy never occupies the destination (it would read as drift on every rerun).
   # -L dereferences any link inside the source so no symlink is ever copied in.
   local stage
-  stage=$(mktemp -d "${TMPDIR:-/tmp}/estate-skill.XXXXXX") || { failed=$((failed+1)); return 0; }
+  # The stage sits inside $SKILLS_DIR (hidden, two levels above any SKILL.md the loader reads), so it
+  # is on the destination's filesystem and the final mv is an atomic rename(2). A stage under /tmp is
+  # often another filesystem, where mv degrades to copy-then-delete and an interruption can leave a
+  # partial directory at $dst that every later run reports as drift (Bugbot, PR #4).
+  stage=$(mktemp -d "$SKILLS_DIR/.estate-stage.XXXXXX") || { failed=$((failed+1)); return 0; }
   if cp -RL "$src" "$stage/$name" \
      && [ "$(tree_sha "$src")" = "$(tree_sha "$stage/$name")" ] \
      && mv "$stage/$name" "$dst"; then
