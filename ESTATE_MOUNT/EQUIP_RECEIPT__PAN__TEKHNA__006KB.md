@@ -128,3 +128,46 @@ count from a full listing, never a truncated one · unverified marked [UNVERIFIE
 ENGINE SUGGESTS, MOTHER DECIDES.
 
 ΦΩΣ
+
+---
+
+## Supersession · 2026-10-02T18:36:21+03:00 · no symlinks (Mother hard rule)
+
+Mother, 2026-10-02: "No pointers no symlinks allowed. Hard rule." The equip step above wired skills as
+symlinks into `~/.claude/skills`. `bootstrap_estate.sh` now copies each skill as a full body
+(`cp -RL`, so no link inside a source is carried either) and verifies it by a SHA-256 tree hash.
+
+- A legacy symlink at the destination is replaced by the body it pointed at (a link is a pointer, not content).
+- An existing copy whose tree hash differs from the skill plane is reported and never overwritten.
+- After the run the script counts symlinks under the skills directory and reports any that remain.
+
+Scratch-directory test, 2026-10-02 (seeded with one legacy symlink and one locally edited copy):
+run 1 `copied=111 kept=0 drifted=1 symlinks_replaced=1 failed=0`; run 2 `copied=0 kept=111 drifted=1
+symlinks_replaced=0 failed=0`; 112 real directories, 0 symlinks; the edited copy kept its local line.
+
+The earlier text above is retained as history.
+
+### Review fix · 2026-10-02 (Copilot + Cursor Bugbot findings)
+
+- The tree hash now follows links (`find -L`), the same view `cp -RL` copies, so a skill that contains an
+  internal link verifies against its materialized copy.
+- Each copy is staged in a temporary directory, verified, then moved into place. A failed or partial
+  copy never occupies the destination, so the next run retries it instead of reporting it as drift.
+
+Reproduced first on the PR head (`0aff96d`): a skill with an internal link failed verification, and a
+failed copy stayed as permanent drift on the rerun. With the fix: the linked skill copies and verifies;
+the failing skill is not installed, then installs on the next run once its source is repaired;
+0 symlinks and 0 leftover staging directories.
+
+### Review fix · 2026-10-02 (Cursor Bugbot: staged move can occupy destination)
+
+- The staging directory now sits inside the skills directory itself (`.estate-stage.XXXXXX`). It is hidden,
+  and it sits two levels above any `SKILL.md` that the loader reads. Because it is on the destination's
+  filesystem, the final `mv` is one atomic `rename(2)`. A stage under `/tmp` is often on another
+  filesystem. There `mv` falls back to copy-then-delete, and an interruption could leave a partial
+  directory at the destination, which every later run reported as drift.
+
+Scratch test: one legacy symlink and one locally edited copy, traced with `strace`. Run 1:
+`copied=111 kept=0 drifted=1 symlinks_replaced=1 failed=0`. All 111 installs were one
+`renameat2(..., RENAME_NOREPLACE) = 0` each, from `.estate-stage.*` to the destination. Run 2:
+`copied=0 kept=111 drifted=1`. The run left 0 staging directories and 0 symlinks.
