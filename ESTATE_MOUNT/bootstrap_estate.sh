@@ -52,7 +52,7 @@ FIRM="$PANTHEONA_ROOT/MATRY_SKILLS_DEPLOY_20260722_212117/FIRM_HIGH_LAW_CODE"
 copied=0 kept=0 drifted=0 unlinked=0 failed=0
 
 tree_sha() {
-  (cd "$1" && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum) | sha256sum | cut -d' ' -f1
+  (cd "$1" && find -L . -type f -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum) | sha256sum | cut -d' ' -f1
 }
 
 copy_skill() {
@@ -78,7 +78,8 @@ copy_skill() {
     copied=$((copied+1))
   else
     failed=$((failed+1))
-    echo "estate: $name copy did not verify by SHA-256 — check $dst." >&2
+    rm -rf "$dst"
+    echo "estate: $name copy did not verify by SHA-256 — removed $dst; will retry next run." >&2
   fi
 }
 
