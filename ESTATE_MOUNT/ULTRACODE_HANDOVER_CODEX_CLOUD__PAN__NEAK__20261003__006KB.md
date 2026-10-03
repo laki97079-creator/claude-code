@@ -278,3 +278,74 @@ A seat that only agrees is worth nothing.
 **ENGINE SUGGESTS, MOTHER DECIDES.** NEVER DELETE. NEVER OVERWRITE. NEVER SEND.
 
 `[VERSION: v1 · created 2026-10-03 · author PAN / claude-code-f5 · supersedes: none] · ΦΩΣ
+
+---
+
+## 7 · APPENDED 03.10.2026 — M5 MEASURED. The "20 vs 115" tell in §3 is WRONG for this container.
+
+Nothing above was altered. This section supersedes the §3 M5 prediction and the plugin-install trap
+paragraph that followed it, both of which rested on a mechanism that is **not** the one in use here.
+
+`[SESSION]` Measured, this container, commands as shown:
+
+| probe | result |
+|---|---|
+| `claude --version` | `2.1.288 (Claude Code)` |
+| `node -v` | `v22.22.2` |
+| `npx -v` | `10.9.7` |
+| `python3 -V` | `Python 3.11.15` — note **3.11**, not the devcontainer's 3.12 |
+| `ls ~/.claude/skills \| wc -l` | **111** |
+| `claude plugin list` | **`No plugins installed.`** |
+| `claude plugin marketplace list` | one marketplace only: `anthropic-plugin-directory` (built in). **`kosmomorphia` is not configured anywhere.** |
+
+**So the prediction was wrong in both directions.** It is not 20 and it is not 115, and the number is
+not a tell about the plugin at all, because **the plugin is not the mechanism in this container.**
+The skills are present through the `ESTATE_MOUNT/bootstrap_estate.sh` symlink mount, which worked:
+
+- 111 entries = **109 symlinks + 2 real directories** (`session-start-hook`, `synced`)
+- **108** of the 109 symlinks point into `/home/user/kosmomorphia-plugin/skills/`, which holds
+  exactly 108 directories and no stray files. A clean one-to-one.
+- **0 broken symlinks** — every one resolves.
+- The 109th is `ka-pan-extract-daughter` → `/home/user/pantheona-cross-engine-dual/MATRY_SKILLS_DEPLOY_20260722_212117/FIRM_HIGH_LAW_CODE/ka-pan-extract-daughter`
+  — a **different repository**, resolving fine, and **not tracked in the plugin repo's git at all.**
+  Inside it: both `SKILL.md` **and** `SKILL 2.md`. **That is a forked skill — a CLEAR LINE smell.**
+  Flagged, not touched. It is the live Mac source's to settle, not a cloud session's.
+
+**What this means for the environment setup you write.** Do not write `claude plugin install` into it
+as the way skills arrive, and do not use a skills count as a readiness check — in this container that
+count is already 111 with zero plugins installed, so the check would pass while reporting nothing.
+The working mechanism is the symlink mount, and the correct readiness probe is the one §3 already
+gives for ka-sherlock: **probe by resolution and execution, never by presence or by count.**
+Concretely: assert every entry under `~/.claude/skills` resolves, and assert the one-to-one against
+the source directory — that is what caught the 109th.
+
+`[SESSION]` **MCP:** exactly one server is configured — `ka-sherlock`, in
+`/home/user/claude-code/.mcp.json`. It **failed to connect** this session (`CONNECTION_CLOSED`).
+A connection failure, **not** a missing capability. There is no `mcpServers` key in `/root/.claude.json`.
+
+### A second correction, and it is a warning about a tool, not about NEAK
+
+`[SESSION]` I called Composio's connection manager with `operation: LIST_CONNECTED_ACCOUNTS`,
+expecting a read. **It is not a read.** It initiated five NEW pending connections and returned five
+browser authorization links. **Treat that operation as a write. Do not call it to look.**
+
+Its `summary` block then reported `active_connections: 0` — which is false, and false in the same
+shape as the `merged` trap in §M2: **the aggregate was counting only what the call had just
+initiated, while the per-toolkit `accounts` arrays showed the real state.** Read the per-item record,
+never the summary:
+
+| toolkit | active account |
+|---|---|
+| slack | `slack_apian-stun` (default) |
+| notion | `notion_frim-gree` (default) |
+| github | `github_splay-spiker` (default), `github_zipa-resect` |
+| linear | `linear_reban-cheesy`, alias **`mother-linear`** (default) |
+| googledrive | `googledrive_retial-zogo` (default) |
+
+Five of five have an active connection. The five newly initiated ones were never authorized and
+their links expire in ten minutes; I did not pass them on, because nobody asked for new accounts.
+
+**The transferable rule, now three times measured in one session: an aggregate or an absent field is
+not evidence. Read the per-item record.**
+
+`[VERSION: v1 + §7 appended 2026-10-03 · author PAN / claude-code-f5] · ΦΩΣ`
